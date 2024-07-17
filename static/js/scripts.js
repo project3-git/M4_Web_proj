@@ -43,14 +43,17 @@ function limitTableRows() {
 
 function limitPaperTableRows() {
     const table = document.querySelector('#paper-table-container table');
-    if (!table) return;
-
+    if (!table){
+      loadingEnd(); 
+      return;
+    }
     const rows = table.querySelectorAll('tbody tr');
     rows.forEach((row, index) => {
         if (index >= 100) {
             row.style.display = 'none';
         }
     });
+    loadingEnd();
 
     //  3자리 수
     var re = /\B(?=(\d{3})+(?!\d))/g
@@ -82,6 +85,7 @@ function setEventListeners() {
     limitPaperTableRows();
 
     document.getElementById('search-form').onsubmit = function(event) {
+        loadingStart();
         event.preventDefault();
         var form = event.target;
 
@@ -101,6 +105,7 @@ function setEventListeners() {
             console.log('Tables limited');
 
         }).catch(error => {
+            loadingEnd();
             console.error('There has been a problem with your fetch operation:', error);
         });
     };
@@ -140,4 +145,20 @@ function setEventListeners() {
     } else {
         console.log('Reset button not found');
     }
+}
+
+/**
+ * 화면 로딩 시작
+ */
+function loadingStart() {
+    const loading = document.querySelector('#loading');
+    loading.style.display = 'block';
+}
+
+/**
+ * 화면 로딩 종료
+ */
+function loadingEnd() {
+    const loading = document.querySelector('#loading');
+    loading.style.display = 'none';
 }

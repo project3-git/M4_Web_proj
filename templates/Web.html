@@ -15,6 +15,12 @@
         <img src="{{ url_for('static', filename='image/ai.png') }}" class="header-image" width="50" height="50">
         <h1 class="center">AI 특허 검색</h1>
     </header>
+    <div id="loading">
+        <div class="spinner"></div>
+        <div class="state-viewer-container">
+            <label class="label-font" id="stateLabel">조회 중...</label>
+        </div>
+    </div>
     <form id="search-form" method="post" action="/search">
         {{ form.hidden_tag() }}
         <div class="main-container">
