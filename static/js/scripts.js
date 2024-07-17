@@ -81,10 +81,14 @@ function limitPaperTableRows() {
 }
 
 function setEventListeners() {
-    limitTableRows();
-    limitPaperTableRows();
+    // limitTableRows();
+    // limitPaperTableRows();
 
     document.getElementById('search-form').onsubmit = function(event) {
+        if(!validation()) {
+            return false;
+        }
+
         loadingStart();
         event.preventDefault();
         var form = event.target;
@@ -101,7 +105,9 @@ function setEventListeners() {
         }).then(html => {
             console.log('Search response received');
             document.body.innerHTML = html;
-            setEventListeners();  // 이벤트 리스너를 다시 설정
+            //setEventListeners();  // 이벤트 리스너를 다시 설정
+            limitTableRows();
+            limitPaperTableRows();
             console.log('Tables limited');
 
         }).catch(error => {
@@ -145,6 +151,15 @@ function setEventListeners() {
     } else {
         console.log('Reset button not found');
     }
+
+    //  영문 입력 방지
+    document.getElementById('search_keyword').onkeydown = function(e){
+        var val = e.target.value;
+        var new_val = val.replace(/[a-zA-Z]/g,'');
+        
+        e.target.value = new_val;
+
+    };
 }
 
 /**
@@ -161,4 +176,55 @@ function loadingStart() {
 function loadingEnd() {
     const loading = document.querySelector('#loading');
     loading.style.display = 'none';
+}
+
+//  유효성체크
+function validation(){
+    // 검색어 , 카테고리 , 출원일자
+    const search_keyword = nvl(document.getElementById('search_keyword').value); //  검색어
+
+    if(search_keyword == ""){
+        alert("검색어를 입력해주세요.");
+        return false;
+    }
+    
+    //  카테고리 체크박스 체크여부
+    const checks = document.getElementsByName('application_fields');
+    var check = false;
+    for(var i=0; i<checks.length; i++){
+        if(checks[i].checked) {
+            check = true;
+        }
+    }
+
+    if(!check){
+        alert("카테고리를 선택해주세요.");
+        return false;
+    }
+
+    //  출원일자
+    const start_date = nvl(document.getElementById('start_date').value); //  시작일자
+    const end_date  = nvl(document.getElementById('end_date').value); //  종료일자
+
+    if(start_date == "" || end_date == ""){
+        alert("출원일자를 입력해주세요.");
+        return false;
+    }
+
+    //  시작날짜가 종료날짜보다 클 경우
+    if(parseInt(start_date.replaceAll('-','')) > parseInt(end_date.replaceAll('-',''))){
+        alert("출원일자를 확인해주세요.");
+        return false;
+    }
+
+    return true;
+
+}
+
+//  null 변환
+function nvl(str, defaultStr = ""){
+    if(typeof str == "undefined" || str == null || str == "")
+        str = defaultStr ;
+     
+    return str ;
 }
