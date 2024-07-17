@@ -85,59 +85,35 @@ function setEventListeners() {
     limitPaperTableRows();
 
     document.getElementById('search-form').onsubmit = function(event) {
+        if(!validation()) {
+            return false;
+        }
+
+        //  로딩바
+        loadingStart();
+
         event.preventDefault();
         var form = event.target;
-        var submitter = event.submitter;
 
-        if (submitter && submitter.classList.contains('download-button')) {
-            // 다운로드 버튼이 클릭된 경우
-            fetch(submitter.formAction, {
-                method: form.method,
-                body: new FormData(form),
-            }).then(response => {
-                if (response.ok) {
-                    console.log('Download request succeeded');
-                    return response.blob();
-                }
-                throw new Error('Network response was not ok.');
-            }).then(blob => {
-                console.log('Download response received');
-                var url = window.URL.createObjectURL(blob);
-                var a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                a.download = 'downloaded_file';
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-            }).catch(error => {
-                console.error('There has been a problem with your fetch operation:', error);
-            });
-        } else {
-            if(!validation()) {
-                return false;
+        fetch(form.action, {
+            method: form.method,
+            body: new FormData(form),
+        }).then(response => {
+            if (response.ok) {
+                console.log('Search request succeeded');
+                return response.text();
             }
-        
-            loadingStart();
-            // 검색 버튼이 클릭된 경우
-            fetch(form.action, {
-                method: form.method,
-                body: new FormData(form),
-            }).then(response => {
-                if (response.ok) {
-                    console.log('Search request succeeded');
-                    return response.text();
-                }
-                throw new Error('Network response was not ok.');
-            }).then(html => {
-                console.log('Search response received');
-                document.body.innerHTML = html;
-                setEventListeners();  // 이벤트 리스너를 다시 설정
-                console.log('Tables limited');
-            }).catch(error => {
-                console.error('There has been a problem with your fetch operation:', error);
-            });
-        }
+            throw new Error('Network response was not ok.');
+        }).then(html => {
+            console.log('Search response received');
+            document.body.innerHTML = html;
+            setEventListeners();  // 이벤트 리스너를 다시 설정
+            console.log('Tables limited');
+
+        }).catch(error => {
+            loadingEnd();
+            console.error('There has been a problem with your fetch operation:', error);
+        });
     };
 
     const plotButton = document.getElementById('plot-button');
@@ -251,4 +227,30 @@ function nvl(str, defaultStr = ""){
         str = defaultStr ;
      
     return str ;
+}
+
+function downloadClick() {
+    var form = document.getElementById('search-form');
+
+    fetch('/download', {
+        method: 'POST',
+        body: new FormData(form),
+    }).then(response => {
+        if (response.ok) {
+            return response.blob();
+        } else {
+            throw new Error('Network response was not ok.');
+        }
+    }).then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'filtered_data.zip';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+    }).catch(error => {
+        console.error('There has been a problem with your fetch operation:', error);
+    });
 }
