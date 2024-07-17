@@ -25,7 +25,7 @@ app.config.from_pyfile('config.py')
 
 csrf = CSRFProtect(app)
 
-
+# git 테스트
 # Google Cloud Translation API 인증이 필요해서 인증 필요없는 library package 사용
 ## pip install googletrans==4.0.0rc1 필요
 ## pip install deepl 필요
