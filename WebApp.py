@@ -29,12 +29,15 @@ csrf = CSRFProtect(app)
 # Google Cloud Translation API 인증이 필요해서 인증 필요없는 library package 사용
 ## pip install googletrans==4.0.0rc1 필요
 ## pip install deepl 필요
+
+# 구글 번역
 def translate_keyword_g(keyword, target_language='en'):
     translator = Translator()
     keyword = keyword.replace(' ', '')
     translation = translator.translate(keyword, dest=target_language)
     return translation.text
-    
+
+# deepl 번역
 def translate_keyword_d(keyword):
     auth_key = "c6d7b043-1235-44d4-96bd-331cc0ec8c35:fx"
     translator = deepl.Translator(auth_key)
@@ -42,6 +45,7 @@ def translate_keyword_d(keyword):
     result = translator.translate_text(keyword, target_lang='EN-US')
     return result.text
 
+# 네이버 번역
 def translate_keyword_n(text):
     url = "https://naveropenapi.apigw.ntruss.com/nmt/v1/translation"
     headers = {"X-NCP-APIGW-API-KEY-ID": "3r1tnk1ohr", "X-NCP-APIGW-API-KEY": "twwiSo88HbmrNatHLlWYn618dWpK5P9XcD6B6Hkr"}
@@ -215,6 +219,7 @@ def search():
                 else:
                     paper_table_html = ""
             else:
+                filtered_data_papers = pd.DataFrame()
                 paper_table_html = ""
 
             table_html = filtered_df_patents[['Application Number', 'Application Date', 'Applicant', 'Title', 'Status']].to_html(index=False, classes="table", escape=False)
@@ -302,7 +307,6 @@ def download():
     response = make_response(memory_file.read())
     response.headers["Content-Disposition"] = "attachment; filename=filtered_data.zip"
     response.headers["Content-Type"] = "application/zip"
-
     return response
 
 @app.route('/plot')
@@ -316,23 +320,43 @@ def plot():
     print("Plot endpoint called")  # 디버깅 로그 추가
 
     fig = plt.figure(figsize=(14, 14))
-    # 2X3 Plot
-    gs = gridspec.GridSpec(9, 6)
-    ax1 = fig.add_subplot(gs[:3, :3])
-    ax2 = fig.add_subplot(gs[:3, 3:])
-    ax3 = fig.add_subplot(gs[3:6, :3])
-    ax4 = fig.add_subplot(gs[3:6, 3:])
-    ax5 = fig.add_subplot(gs[6:, :3])
-    ax6 = fig.add_subplot(gs[6:, 3:])
+    gs = gridspec.GridSpec(9, 6)            # 2X3 Plot
+    if (not filtered_data_patents.empty) & (not filtered_data_papers.empty):
+        ax1 = fig.add_subplot(gs[:3, :3]); ax2 = fig.add_subplot(gs[:3, 3:]); ax3 = fig.add_subplot(gs[3:6, :3])
+        ax4 = fig.add_subplot(gs[3:6, 3:]); ax5 = fig.add_subplot(gs[6:, :3]); ax6 = fig.add_subplot(gs[6:, 3:])
+    elif (not filtered_data_patents.empty) & (filtered_data_papers.empty):
+        ax1 = fig.add_subplot(gs[:3, :3]); ax3 = fig.add_subplot(gs[:3, 3:])
+        ax4 = fig.add_subplot(gs[3:6, 1:4]); ax5 = fig.add_subplot(gs[6:, :3]); ax6 = fig.add_subplot(gs[6:, 3:])
+    elif (filtered_data_patents.empty) & (not filtered_data_papers.empty):
+        ax2 = fig.add_subplot(gs[:3, :3]); ax3 = fig.add_subplot(gs[:3, 3:])
+
+    # Group the original data by year
+    df_patents['application_date'] = pd.to_datetime(df_patents['application_date'], errors='coerce')
+    df_patents['application_year'] = df_patents['application_date'].dt.year
+    total_patent_counts = df_patents.groupby('application_year').size()
+
+    df_papers['submit_date'] = pd.to_datetime(df_papers['submit_date'], errors='coerce')
+    df_papers['submit_year'] = df_papers['submit_date'].dt.year
+    total_paper_counts = df_papers.groupby('submit_year').size()
+
 
     if not filtered_data_patents.empty:
         filtered_data_patents['application_year'] = filtered_data_patents['Application Date'].dt.year
         filtered_counts = filtered_data_patents.groupby(['application_year', 'applicant_lgrp']).size().unstack(fill_value=0)
+        filtered_patent_counts = filtered_data_patents.groupby('application_year').size()
 
-        # Group the original data by year
-        df_patents['application_date'] = pd.to_datetime(df_patents['application_date'], errors='coerce')
-        df_patents['application_year'] = df_patents['application_date'].dt.year
-        total_patent_counts = df_patents.groupby('application_year').size()
+        if not filtered_data_papers.empty:                  # Create a common index
+            filtered_data_papers['submit_date'] = pd.to_datetime(filtered_data_papers['submit_date'], errors='coerce')
+            filtered_data_papers['submit_year'] = filtered_data_papers['submit_date'].dt.year
+            common_index = total_patent_counts.index.union(total_paper_counts.index).union(filtered_data_patents['application_year'].dropna().unique()).union(filtered_data_papers['submit_year'].dropna().unique())
+            
+        else: common_index = total_patent_counts.index.union(filtered_data_patents['application_year'].dropna().unique())
+        # Reindex to ensure all indices match
+        total_patent_counts = total_patent_counts.reindex(common_index, fill_value=0)
+        filtered_patent_counts = filtered_patent_counts.reindex(common_index, fill_value=0)
+
+        # Calculate the percentage
+        filtered_patent_percentage = (filtered_patent_counts / total_patent_counts * 100).fillna(0)
 
         applicant_group_counts = filtered_data_patents['applicant_lgrp'].value_counts()
 
@@ -353,6 +377,14 @@ def plot():
         ax1.tick_params(axis='y', labelsize=12, direction='in', left=True, right=True)
         ax1.tick_params(axis='x', labelsize=12, direction='in', bottom=False, top=False)
 
+
+        sns.lineplot(x=filtered_patent_percentage.index, y=filtered_patent_percentage, ax=ax3, color='blue', label='Patents', legend=False, marker='o', markersize=8, markerfacecolor='none', markeredgecolor='blue')
+        ax3.set_title("Filtered Patent/Paper' Portions of Total by Year")
+        ax3.set_xlabel('Year', fontsize=14)
+        ax3.set_ylabel('Percentage of Patents [%]', fontsize=14, color='blue')
+        ax3.tick_params(axis='x', labelsize=12, direction='in', bottom=True, top=False)
+        ax3.tick_params(axis='y', labelsize=12, direction='in', left=True, right=False, colors='blue')
+
         # 그룹 이름을 리스트로 추출
         group_names = applicant_group_counts.index.tolist()
         # explode 값 설정: 기본적으로 모두 0으로 초기화
@@ -367,7 +399,8 @@ def plot():
         ax4.legend(wedges, applicant_group_counts.index, title="Groups", loc="center left", bbox_to_anchor=(1, 0.5, 0.1, 0.2), prop={'weight': 'bold'})
         ax4.set_aspect('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
         # ax4.set_title('Applicant Distribution')
-        fig.text(0.78, 0.38, 'Applicant Distribution', ha='center', fontsize=14)
+        #fig.text(0.78, 0.38, 'Applicant Distribution', ha='center', fontsize=14)
+        ax4.annotate('Applicant Distribution', xy=(0, 0), xytext=(0, -140),textcoords='offset points', ha='center',fontsize=14)
 
         bars5 = sns.barplot(x='Patent Count', y='Applicant', data=top10_total, hue='Applicant', legend=False, orient='h', errorbar=None, width=0.7, palette='bone', ax=ax5)
         ax5.set_title('Top 10 Applicants')
@@ -405,56 +438,40 @@ def plot():
 
     else:
         print("No data available for patents-plotting")  # 디버깅 로그 추가
-        ax1.set_visible(False)
-        ax4.set_visible(False)
-        ax5.set_visible(False)
-        ax6.set_visible(False)
 
     if not filtered_data_papers.empty:
-        filtered_data_papers['submit_date'] = pd.to_datetime(filtered_data_papers['submit_date'], errors='coerce')
-        filtered_data_papers['submit_year'] = filtered_data_papers['submit_date'].dt.year
-        filtered_p_counts = filtered_data_papers.groupby(['submit_year']).size()
+        filtered_paper_counts = filtered_data_papers.groupby(['submit_year']).size()
 
-        df_papers['submit_date'] = pd.to_datetime(df_papers['submit_date'], errors='coerce')
-        df_papers['submit_year'] = df_papers['submit_date'].dt.year
-        total_paper_counts = df_papers.groupby('submit_year').size()
-
-        # Create a common index
-        common_index = total_patent_counts.index.union(total_paper_counts.index).union(filtered_data_patents['application_year'].dropna().unique()).union(filtered_data_papers['submit_year'].dropna().unique())
+        if filtered_data_patents.empty:
+            common_index = total_paper_counts.index.union(filtered_data_papers['submit_year'].dropna().unique())
 
         # Reindex to ensure all indices match
-        total_patent_counts = total_patent_counts.reindex(common_index, fill_value=0)
         total_paper_counts = total_paper_counts.reindex(common_index, fill_value=0)
-        filtered_patent_counts = filtered_data_patents.groupby('application_year').size().reindex(common_index, fill_value=0)
-        filtered_paper_counts = filtered_data_papers.groupby('submit_year').size().reindex(common_index, fill_value=0)
+        filtered_paper_counts = filtered_paper_counts.reindex(common_index, fill_value=0)
 
         # Calculate the percentage
-        filtered_patent_percentage = (filtered_patent_counts / total_patent_counts * 100).fillna(0)
         filtered_paper_percentage = (filtered_paper_counts / total_paper_counts * 100).fillna(0)
 
 
-        filtered_p_counts.plot(kind='bar', color=sns.color_palette("bright"), ax=ax2)  # pastel, deep, mated, bright, dark,colorblind
+        filtered_paper_counts.plot(kind='bar', color=sns.color_palette("bright"), ax=ax2)  # pastel, deep, mated, bright, dark,colorblind
         ax2.set_title('Number of Papers(WorldWide) by Year')
         ax2.set_xlabel('Year', fontsize=14)
         ax2.set_ylabel('Number of Papers', fontsize=14)
-        ax2.set_xticks(range(len(filtered_p_counts.index)))
-        ax2.set_xticklabels(filtered_p_counts.index, rotation=45, ha='right', fontsize=12)
+        ax2.set_xticks(range(len(filtered_paper_counts.index)))
+        ax2.set_xticklabels(filtered_paper_counts.index, rotation=45, ha='right', fontsize=12)
         ax2.tick_params(axis='y', labelsize=12, direction='in', left=True, right=True)
         ax2.tick_params(axis='x', labelsize=12, direction='in', bottom=False, top=False)
 
         # Line plot for percentages
         ax3_twin = ax3.twinx()
-        sns.lineplot(x=filtered_patent_percentage.index, y=filtered_patent_percentage, ax=ax3, color='blue', label='Patents', legend=False, marker='o', markersize=8, markerfacecolor='none', markeredgecolor='blue')
         sns.lineplot(x=filtered_paper_percentage.index, y=filtered_paper_percentage, ax=ax3_twin, color='green', label='Papers', legend=False, marker='o', markersize=8, markerfacecolor='none', markeredgecolor='green')
-
         ax3.set_title("Filtered Patent/Paper' Portions of Total by Year")
         ax3.set_xlabel('Year', fontsize=14)
-        ax3.set_ylabel('Percentage of Patents [%]', fontsize=14, color='blue')
         ax3_twin.set_ylabel('Percentage of Papers [%]', fontsize=14, color='green')
         ax3.tick_params(axis='x', labelsize=12, direction='in', bottom=True, top=False)
-        ax3.tick_params(axis='y', labelsize=12, direction='in', left=True, right=False, colors='blue')
         ax3_twin.tick_params(axis='y', labelsize=12, direction='in', left=False, right=True, colors='green')
 
+        #if not filtered_data_patents.empty:
         # Combine legends for ax3 and ax3_twin
         lines, labels = ax3.get_legend_handles_labels()
         lines2, labels2 = ax3_twin.get_legend_handles_labels()
@@ -462,8 +479,6 @@ def plot():
 
     else:
         print("No data available for papers-plotting")  # 디버깅 로그 추가
-        ax2.set_visible(False)
-        ax3.set_visible(False)
 
     plt.tight_layout()
     # Save the plot as an image file
