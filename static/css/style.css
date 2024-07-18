@@ -1,5 +1,5 @@
 body {
-    font-family: SEBANG_Gothic, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Noto Sans KR", "Malgun Gothic", 돋움, Dotum, Helvetica, Arial, sans-serif;
+    font-family: SEBANG_Gothic, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Noto Sans KR", "Malgun Gothic", 'Nanum Gothic', Dotum, Helvetica, Arial, sans-serif;
     line-height: 1.6;
     margin: 0;
     padding: 0;
@@ -14,6 +14,21 @@ header {
     z-index: 1000;
 }
 
+.header-top {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    position: relative; /* 중앙 정렬을 위해 relative 설정 */
+    border-bottom: 1px solid rgb(101, 102, 109);
+}
+
+.header-top .header-img {
+    position: relative;
+    right: 0;
+    margin-left: 10px;
+}
+
 header h1 {
     cursor: pointer;
     margin: 0;
@@ -25,13 +40,17 @@ header h1 {
 }
 
 header h4 {
-    border-bottom: 1px solid rgb(101, 102, 109);
+    
     text-align: center;
     margin: 0;
     align-items: center;
     padding: 10px 0;
+    margin-left: 10px; /* img와 간격 조정을 위해 여백 추가 */
 }
 
+.header-image {
+    margin-top: 20px; /* h1과 일치하도록 이미지 위치 조정 */
+}
 
 
 
@@ -54,11 +73,11 @@ header h4 {
 #div_fields {
     width: 25%;
     padding-right: 1rem;
-    margin-right: 1rem;
+    /* margin-right: 1rem; */
+    margin-left: 30px;
 }
 
 .fields-label {
-    /* margin-top: 0; */
     font-size: 1rem;
     padding: 20px;/* h2와 체크박스 그룹 사이의 간격 추가 */
     font-weight: bold;
@@ -70,6 +89,7 @@ header h4 {
     display: flex;
     flex-wrap: wrap;
     gap: 50px;
+    padding-bottom: 0px;
 }
 
 .checkbox-group label {
@@ -82,16 +102,12 @@ header h4 {
 
 }
 
-
 .checkbox-group label input[type="checkbox"] {
     margin-right: 5px;
 }
 
 .filter-group {
     display: flex;
-    /* flex-direction: column;
-    align-items: center;
-    width: 100%; */
     flex-wrap: wrap;
     gap: 10px;
 }
@@ -105,32 +121,25 @@ header h4 {
 }
 
 .row label {
-    /* flex: 0 0 70px; */
-    /* 레이블의 너비를 고정 또는 비율로 설정 */
     flex: 1;
-    min-width: 100px; /* Adjust as needed */
+    min-width: 100px;
 }
 
 
-.search-button:hover,
-.download-button:hover,
-.plot-button:hover {
-    background-color: #007B9E;
+.search-button:hover {
+    background-color: #aaa8a8c4;
 }
 
 
-
-.search-button,
-.download-button,
-.plot-button {
+.search-button{
     padding: 10px 20px;
-    background-color: #008CBA;
+    background-color: #d57c7c;
     color: white;
     border: none;
     border-radius: 5px;
     cursor: pointer;
     white-space: nowrap;
-    flex: 1; /* 각 버튼이 동일한 비율로 너비를 차지하도록 */
+    flex: 1;
     margin: 7px; 
 }
 
@@ -139,7 +148,7 @@ header h4 {
 .filter-group select,
 .filter-group input[type="text"] {
     flex: 2;
-    min-width: 80px; /* Set minimum width to make fields wider */
+    min-width: 80px;
     padding: 8px;
     font-size: 14px;
     border: 1px solid #ccc;
@@ -155,16 +164,18 @@ header h4 {
     gap: 20px;
 }
 
+
 .top-tables {
     display: block;
     padding: 20px;
     margin: 0 auto;
-    width: 100%;
+    /* width: 100%; */
     box-sizing: border-box; /* 패딩과 테두리를 포함하여 크기를 계산 */
+    padding-top: 0px;
 }
 
 .top-tables h2 {
-    font-size: 1.1em;
+    font-size: 1em;
     white-space: nowrap; 
     text-overflow: ellipsis;
     max-width: 100%;
@@ -172,10 +183,10 @@ header h4 {
 }
 
 .tables {
-    width: 76%;
+    width: 75%;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 10px;
 }
 
 #div_table_container,
@@ -185,9 +196,9 @@ header h4 {
 
 .scrollable-table {
     overflow-y: auto;
-    max-height: 400px;
+    max-height: 300px;
     position: relative;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 .scrollable-table thead th {
@@ -195,8 +206,7 @@ header h4 {
     top: 0;
     background: #f1f1f1;
     z-index: 1;
-    border: 1px solid black; /* 테두리를 1px 두께의 검은색 실선으로 설정합니다 */
-    padding: 8px;
+    padding: 5px;
 }
 
 table th:nth-child(2),
@@ -210,10 +220,11 @@ table td:nth-child(2) {
 
 table th,
 table td {
-    font-size: 0.9em;
+    font-size: 0.8em;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    padding: 5px;
 }
 
 table th {
@@ -230,7 +241,7 @@ table td:nth-child(6) {
 }
 
 h2 {
-    font-size: 1.1em;
+    font-size: 1em;
 }
 
 .label {
@@ -247,8 +258,8 @@ footer {
     text-align: center;
     padding: 10px;
     width: 100%;
-    height: 60px;
-    line-height: 60px;
+    height: 50px;
+    line-height: 50px;
     bottom: 0;
     left: 0;
 }
@@ -280,52 +291,155 @@ table{
     
 }
 
+
+input[type="checkbox"] {
+    display: none;
+}
+
+
 .checkbox-image {
-    width: 20px;
-    height: 20px;
+    width: 15px;
+    height: 15px;
     display: inline-block;
-    background-size: cover;
-    vertical-align: middle;
+    background-image: url('/static/image/check_off.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
+
+
+input[type="checkbox"]:checked + label .checkbox-image {
+    background-image: url('/static/image/check_on.png');
 }
 
 
 
-/* 기본적으로 테이블의 테두리 스타일을 설정합니다. */
+/* 테이블의 겉 테두리 설정 */
 .table-container table,
 .scrollable-table table {
-    border-collapse: collapse; /* 테이블 셀 사이의 간격을 없앱니다. */
-    width: 100%; /* 테이블의 너비를 100%로 설정합니다. */
+    border-collapse: collapse;
+    width: 100%;
 }
 
-/* 모든 테이블 셀의 테두리 스타일을 설정합니다. */
-.table-container table,
+/* 모든 셀의 테두리 초기화 */
 .table-container th,
 .table-container td,
-.scrollable-table table,
 .scrollable-table th,
 .scrollable-table td {
-    border: 1px solid #ddd; /* 테두리를 1픽셀의 실선으로 설정합니다. */
-    padding: 8px; /* 셀의 안쪽 여백을 설정합니다. */
-    text-align: left; /* 텍스트를 왼쪽 정렬합니다. */
+    border: none; 
+    padding: 4px;
+    text-align: left; 
+    border: 1px solid #ddd;
+    line-height: 1.5;
 }
 
-/* 테이블 헤더 셀의 배경색과 글자 색을 설정합니다. */
+/* 테이블 헤더 셀의 배경색과 글자 색 설정 */
 .table-container th,
 .scrollable-table th {
     background-color: #f2f2f2;
     color: #333;
+    text-align: center;
+    padding: 8px;
+    line-height: 1.7;
 }
 
-/* 테이블의 마지막 행 셀의 테두리를 없앱니다. */
+.table-container th:nth-child(2),
+.scrollable-table th:nth-child(2){
+    text-align: center;
+}
+
+
+/* 테이블의 첫 번째 행 셀의 상단 테두리 설정 */
+.table-container tr:first-child th,
+.scrollable-table tr:first-child th,
+.table-container tr:first-child td,
+.scrollable-table tr:first-child td {
+    border-top: 1px solid black;
+}
+
+/* 테이블의 마지막 행 셀의 하단 테두리 설정 */
 .table-container tr:last-child td,
-.scrollable-table tr:last-child td{
-    border-bottom: none;
+.scrollable-table tr:last-child td {
+    border-bottom: 1px solid black !important; 
 }
 
-/* 마지막 열 셀의 테두리를 없앱니다. */
+/* 테이블의 첫 번째 열 셀의 왼쪽 테두리 설정 */
+.table-container td:first-child,
+.scrollable-table td:first-child,
+.table-container th:first-child,
+.scrollable-table th:first-child {
+    border-left: 1px solid black; 
+}
+
+/* 테이블의 마지막 열 셀의 오른쪽 테두리 설정 */
 .table-container td:last-child,
-.scrollable-table td:last-child td{
-    border-right: none;
+.scrollable-table td:last-child,
+.table-container th:last-child,
+.scrollable-table th:last-child {
+    border-right: 1px solid black; 
+}
+
+.table-container{
+    width:300px;
+}
+
+
+.table-container th:last-child,
+.table-container td:last-child {
+    width: 30%;
+}
+
+#paper-table-container {
+    width:100%;
+}
+
+
+#paper-table-container th:last-child,
+#paper-table-container td:last-child{
+    width: 7%;
+}
+
+
+.download-button,
+.plot-button {
+    background-color: transparent; 
+    border: none; 
+    padding: 0; 
+    margin: 5px; 
+    cursor: pointer; 
+    position: relative; 
+    display: inline-block; 
+}
+
+
+.download-button img,
+.plot-button img {
+    vertical-align: middle; 
+}
+
+.download-button .tooltip,
+.plot-button .tooltip {
+    visibility: hidden;
+    background-color: black; 
+    color: white; 
+    text-align: center; 
+    border-radius: 6px; 
+    padding: 5px 10px; 
+    position: absolute;
+    z-index: 1; 
+    bottom: 100%; 
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    white-space: nowrap;
+    writing-mode: horizontal-tb; 
+}
+
+.download-button:hover .tooltip,
+.plot-button:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
 }
 
 /* loading */

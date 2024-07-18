@@ -11,7 +11,10 @@
 </head>
 <body>
     <header class="header-container">
+        <div class="header-top">
         <h4>인공지능 특허 알아보기</h4>
+            <img src="{{ url_for('static', filename='image/search.png') }}" class="header-img" width="30" height="30">
+        </div>
         <img src="{{ url_for('static', filename='image/ai.png') }}" class="header-image" width="50" height="50">
         <h1 class="center">AI 특허 검색</h1>
     </header>
@@ -43,8 +46,14 @@
                     </div>
                 </div>
                 <button type="submit" class="search-button">검색</button>
-                <button type="button" class="download-button" onclick="downloadClick()">다운로드</button>
-                <button type="button" class="plot-button" id="plot-button">plot</button>
+                <button type="button" class="download-button" onclick="downloadClick()">
+                    <img src="{{ url_for('static', filename='image/download.png') }}" alt="Download Icon" width="25" height="25">
+                    <span class="tooltip">다운로드</span>
+                </button>
+                <button type="button" class="plot-button" id="plot-button">
+                    <img src="{{ url_for('static', filename='image/chart-bar.png') }}" alt="Plot Icon" width="25" height="25">
+                    <span class="tooltip">그래프</span>
+                </button>
             </div>
         </div>
         

@@ -25,7 +25,7 @@ app.config.from_pyfile('config.py')
 
 csrf = CSRFProtect(app)
 
-# git 테스트 pull
+
 # Google Cloud Translation API 인증이 필요해서 인증 필요없는 library package 사용
 ## pip install googletrans==4.0.0rc1 필요
 ## pip install deepl 필요
@@ -215,19 +215,33 @@ def search():
                         lambda row: f'<a href="{row["pdf_link"]}" target="_blank">{row["title"]}</a>',
                         axis=1
                     )
-                    paper_table_html = filtered_df_papers[['title', 'Abstract', 'submit_date']].to_html(index=False, classes="table", escape=False)
+                    paper_table_html = filtered_df_papers[['title', 'Abstract', 'submit_date']]
+                    paper_table_html = paper_table_html.rename(columns={
+                        'title': '제목',
+                        'Abstract': '요약',
+                        'submit_date': '등록일'
+                    })
+                    paper_table_html = paper_table_html.to_html(index=False, classes="table", escape=False)
                 else:
                     paper_table_html = ""
             else:
                 filtered_data_papers = pd.DataFrame()
                 paper_table_html = ""
 
-            table_html = filtered_df_patents[['Application Number', 'Application Date', 'Applicant', 'Title', 'Status']].to_html(index=False, classes="table", escape=False)
+            table_html = filtered_df_patents[['Application Number', 'Application Date', 'Applicant', 'Title', 'Status']]
+            table_html = table_html.rename(columns={
+                'Application Number' : '출원번호',
+                'Application Date' : '출원일',
+                'Applicant' : '출원인',
+                'Title' : '제목',
+                'Status' :'상태'
+            })
+            table_html = table_html.to_html(index=False, classes="table", escape=False)
             print("Generated table HTML")
 
             top3_df = filtered_df_patents['Applicant'].value_counts().head(3).reset_index()
             if len(top3_df) < 3:
-                empty_rows = pd.DataFrame([[None, 0]] * (3 - len(top3_df)), columns=top3_df.columns)
+                empty_rows = pd.DataFrame([['N/A', 'N/A']] * (3 - len(top3_df)), columns=top3_df.columns)
                 top3_df = pd.concat([top3_df, empty_rows], ignore_index=True)
             top3_df.columns = ['출원인', '출원 건수']
             top3_table = top3_df.to_html(index=False, classes="table", escape=False) if not top3_df.empty else ""
@@ -246,7 +260,7 @@ def search():
             filtered_df_etc_domestic = filtered_df_patents[filtered_df_patents['applicant_lgrp'].isin(['etc', '국내기업'])]
             top5_df = filtered_df_etc_domestic['Applicant'].value_counts().head(10).reset_index()
             if len(top5_df) < 10:
-                empty_rows = pd.DataFrame([[None, 0]] * (10 - len(top5_df)), columns=top5_df.columns)
+                empty_rows = pd.DataFrame([['N/A', 'N/A']] * (10 - len(top5_df)), columns=top5_df.columns)
                 top5_df = pd.concat([top5_df, empty_rows], ignore_index=True)
             top5_df.columns = ['출원인', '출원 건수']
             
@@ -302,11 +316,12 @@ def download():
         zf.writestr("filtered_papers.csv", paper_csv)
 
     memory_file.seek(0)
-    
+
     # 응답 데이터 생성
     response = make_response(memory_file.read())
     response.headers["Content-Disposition"] = "attachment; filename=filtered_data.zip"
     response.headers["Content-Type"] = "application/zip"
+    
     return response
 
 @app.route('/plot')

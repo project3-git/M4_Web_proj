@@ -76,13 +76,32 @@ function limitPaperTableRows() {
             });
         }
     });
+    document.getElementById('papapers_h').innerText = '논문 결과 : ' + currentLeng + '/' + totalLeng;
+}
 
-    document.getElementById('papapers_h').innerText = '논문 결과 : ' + currentLeng + '/' + totalLeng
+function updateCheckboxImages() {
+    document.querySelectorAll('input[type="checkbox"]').forEach(function(checkbox) {
+        const imageDiv = document.getElementById(`${checkbox.id}-image`);
+        if (checkbox.checked) {
+            imageDiv.style.backgroundImage = "url('/static/image/check_on.png')";
+        } else {
+            imageDiv.style.backgroundImage = "url('/static/image/check_off.png')";
+        }
+
+        checkbox.addEventListener('change', function() {
+            if (checkbox.checked) {
+                imageDiv.style.backgroundImage = "url('/static/image/check_on.png')";
+            } else {
+                imageDiv.style.backgroundImage = "url('/static/image/check_off.png')";
+            }
+        });
+    });
 }
 
 function setEventListeners() {
     limitTableRows();
     limitPaperTableRows();
+    updateCheckboxImages();
 
     document.getElementById('search-form').onsubmit = function(event) {
         if(!validation()) {
@@ -127,29 +146,47 @@ function setEventListeners() {
         console.log('Plot button not found');
     }
 
-    // h1 클릭 시 검색 창 초기화
-    const resetButton = document.getElementById('reset-button');
-    if (resetButton) {
-        resetButton.addEventListener('click', function() {
+    const h1Element = document.querySelector('h1');
+    if (h1Element) {
+        h1Element.addEventListener('click', function() {
             // 체크박스 상태 초기화
             document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
                 checkbox.checked = false;
                 const image = document.getElementById(`${checkbox.id}-image`);
                 if (image) {
-                    image.classList.remove('checked');
+                    image.style.backgroundImage = "url('/static/image/check_off.png')";
                 }
             });
 
-            // 검색 입력 필드 초기화 (만약 검색 필드가 있다면)
-            const searchFields = document.querySelectorAll('input[type="text"]');
-            searchFields.forEach(field => {
+            // 검색 입력 필드 초기화
+            document.querySelectorAll('input[type="text"]').forEach(field => {
                 field.value = '';
             });
 
-            console.log('Search and checkboxes reset');
+            // 출원인 필드 초기화
+            document.querySelectorAll('.table-container').forEach(field => {
+                field.innerHTML = '';
+            });
+
+            document.querySelectorAll('#table-container').forEach(field => {
+                field.innerHTML = '';
+            });
+
+            // 결과 필드 초기화
+            document.querySelectorAll('#paper-table-container').forEach(field => {
+                field.innerHTML = '';
+            });
+
+            // h2 태그 초기화
+            document.querySelectorAll('h2').forEach(h2 => {
+                h2.innerHTML = ''; // h2 태그의 내용을 비웁니다.
+            });
+
+            console.log('Search, checkboxes, applicant, and result reset');
+            setEventListeners();  // 이벤트 리스너를 다시 설정
         });
     } else {
-        console.log('Reset button not found');
+        console.log('h1 element not found');
     }
 
     //  영문 입력 방지
