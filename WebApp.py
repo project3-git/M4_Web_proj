@@ -354,7 +354,6 @@ def plot():
     df_papers['submit_year'] = df_papers['submit_date'].dt.year
     total_paper_counts = df_papers.groupby('submit_year').size()
 
-
     if not filtered_data_patents.empty:
         filtered_data_patents['application_year'] = filtered_data_patents['Application Date'].dt.year
         filtered_counts = filtered_data_patents.groupby(['application_year', 'applicant_lgrp']).size().unstack(fill_value=0)
