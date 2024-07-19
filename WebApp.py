@@ -118,7 +118,7 @@ filtered_data_papers = pd.DataFrame()
 # } 
 
 categories = {
-    '제너럴': ['artificial intelligence', 'neural network', 'chat gpt', 'gemini', 'meta llama', 'ilsvrc', 'imagenet', 'alexnet', 'inference', 'learning', 'training methods', 'ai', 'intelligent', 'training method', 'supervised methods', 'learning methods', 'machine learning', 'deep learning', 'pattern recognition', 'blockchain', 'image recognition', 'vision', 'natural language processing', 'chatbot', 'gesture recognition', 'object recognition', 'motion recognition', 'facial recognition', 'large language models', 'generative', 'general ai', 'autonomous ai', 'autonomous learning'],
+    '제너럴': ['artificial intelligence', 'neural network', 'chat gpt', 'gemini','llama', 'meta llama', 'ilsvrc', 'imagenet', 'alexnet', 'inference', 'learning', 'training methods', 'ai', 'intelligent', 'training method', 'supervised methods', 'learning methods', 'machine learning', 'deep learning', 'pattern recognition', 'blockchain', 'image recognition', 'vision', 'natural language processing', 'chatbot', 'gesture recognition', 'object recognition', 'motion recognition', 'facial recognition', 'large language models', 'generative', 'general ai', 'autonomous ai', 'autonomous learning'],
     '의료': ['healthcare', 'antibody', 'health', 'treatment', 'wellness', 'gene', 'hospital', 'derivative', 'patient', 'animal', 'medical device', 'medical information', 'bio-medical', 'medicine', 'drug', 'surgery', 'rehabilitation', 'clinical', 'doctor', 'nurse', 'emergency', 'diagnosis', 'immune', 'disease', 'disorder', 'therapy', 'public health', 'biometrics'],
     '전자상거래서비스': ['commerce', 'product', 'order', 'customized services', 'client', 'delivery', 'sales', 'payment', 'supply chain', 'service', 'e-commerce platform', 'online shopping', 'online transaction', 'digital payment', 'online service', 'online platform', 'internet transaction', 'internet service', 'customer', 'buyer', 'traffic', 'visitor', 'page view', 'session time', 'email subscription', 'marketing', 'advertisement', 'qr', 'related products', 'customs clearance', 'tariff', 'exchange rate'],
     '자동차': ['automobile', 'driving', 'entry', 'transmission', 'autonomous driving', 'road', 'vehicle', 'collision', 'traffic', 'flight', 'pedestrian', 'lane', 'traffic light', 'electric vehicle', 'hybrid', 'internal combustion engine', 'connected car', 'smart car', 'driver assistance system', 'adas', 'vehicle sensor', 'mobility', 'transportation', 'parking', 'head-up display', 'navigation'],
@@ -155,7 +155,7 @@ def search():
         translated_keyword_d = translate_keyword_d(search_keyword)  ## Deepl Translation
         translated_keyword_n = translate_keyword_n(search_keyword)  ## Naver PAPAGO Translation
         # 3가지 번역된 키워드 리스트
-        translated_keywords = [translated_keyword_g.lower(), translated_keyword_d.lower(), translated_keyword_n.lower()]
+        translated_keywords = [translated_keyword_g.lower().replace(' ',''), translated_keyword_d.lower().replace(' ',''), translated_keyword_n.lower().replace(' ','')]
         print(f"Translated Keyword: {translated_keywords}")
 
         try:
@@ -188,23 +188,36 @@ def search():
             filtered_data_patents = filtered_df_patents
             print(f"Filtered patents data: {filtered_data_patents.shape}")
 
+
+            table_html = filtered_df_patents[['Application Number', 'Application Date', 'Applicant', 'Title', 'Status']]
+            table_html = table_html.rename(columns={
+                'Application Number' : '출원번호',
+                'Application Date' : '출원일',
+                'Applicant' : '출원인',
+                'Title' : '제목',
+                'Status' :'상태'
+            })
+            table_html = table_html.to_html(index=False, classes="table", escape=False)
+            print("Generated table HTML")
+
             if filtered_df_patents.empty:
-                return render_template('Web.html', table="", plot="", top3_table="", top5_table="", paper_table="", date=date, form=form)
+                # return render_template('Web.html', table="", plot="", top3_table="", top5_table="", paper_table="", date=date, form=form)
+                table=""; plot=""; top3_table=""; top5_table=""; table_html = ""
 
             # 논문 데이터 필터링
             if filter_type == 'patent':
                 paper_conditions = []
                 for field in application_fields:
                     for keyword in categories.get(field, []):
-                        paper_conditions.append((df_papers['title'].str.contains(keyword, na=False)) | 
-                                                (df_papers['Abstract'].str.contains(keyword, na=False)))
+                        paper_conditions.append((df_papers['title'].str.lower().str.contains(keyword, na=False)) | 
+                                                (df_papers['Abstract'].str.lower().str.contains(keyword, na=False)))
                 if paper_conditions:
                     filtered_df_papers = df_papers[pd.concat(paper_conditions, axis=1).any(axis=1)]
                     # 필터 조건 생성
                     filter_condition = pd.Series([False] * len(filtered_df_papers), index=filtered_df_papers.index)
                     for translated_keyword in translated_keywords:
-                        filter_condition |= filtered_df_papers['title'].str.contains(translated_keyword, na=False) | \
-                                            filtered_df_papers['Abstract'].str.contains(translated_keyword, na=False)
+                        filter_condition |= filtered_df_papers['title'].str.lower().str.contains(translated_keyword, na=False) | \
+                                            filtered_df_papers['Abstract'].str.lower().str.contains(translated_keyword, na=False)
                     filtered_df_papers = filtered_df_papers[filter_condition]
                     filtered_data_papers = filtered_df_papers
                 else:
@@ -227,17 +240,6 @@ def search():
             else:
                 filtered_data_papers = pd.DataFrame()
                 paper_table_html = ""
-
-            table_html = filtered_df_patents[['Application Number', 'Application Date', 'Applicant', 'Title', 'Status']]
-            table_html = table_html.rename(columns={
-                'Application Number' : '출원번호',
-                'Application Date' : '출원일',
-                'Applicant' : '출원인',
-                'Title' : '제목',
-                'Status' :'상태'
-            })
-            table_html = table_html.to_html(index=False, classes="table", escape=False)
-            print("Generated table HTML")
 
             top3_df = filtered_df_patents['Applicant'].value_counts().head(3).reset_index()
             if len(top3_df) < 3:

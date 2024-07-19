@@ -194,7 +194,7 @@ function setEventListeners() {
         var val = e.target.value;
         var new_val = val.replace(/[a-zA-Z]/g,'');
         
-        e.target.value = new_val;
+        // e.target.value = new_val;
 
     };
 }
